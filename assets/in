@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+
+import io
+import json
+import os
+import sys
+from ftplib import FTP
+from collections import defaultdict
+from pkg_resources import parse_version
+
+import conda_build.api
+
+dest_dir = sys.argv[1]
+payload = json.load(sys.stdin)
+source = payload['source']
+version = payload['version']['version']
+
+with FTP(source['host'], source['username'], source['password']) as ftp:
+    ftp.cwd(source['channel_root'])
+    with io.BytesIO() as fh:
+        # TODO: Account for other archs
+        ftp.retrbinary('RETR noarch/repodata.json', fh.write)
+        repodata = json.loads(fh.getvalue().decode('utf-8'))
+
+    relpaths = set()
+    for relpath, package in repodata['packages'].items():
+        if (package['name'] == source['package'] and
+                package['version'] == version):
+            relpaths.add(os.path.join(package['subdir'], relpath))
+
+    if not relpaths:
+        raise Exception("Couldn't find requested %s %s" % (package['name'],
+                                                           package['version']))
+
+    local_index = os.path.join(dest_dir, 'noarch')
+    os.makedirs(local_index, exist_ok=True)
+
+    for relpath in relpaths:
+        dest_path = os.path.join(dest_dir, relpath)
+        with io.open(dest_path, 'wb') as fh:
+            ftp.retrbinary('RETR %s' % relpath, fh.write)
+
+conda_build.api.update_index([local_index])
+
+print(json.dumps({'version': payload['version'], 'metadata': []}))

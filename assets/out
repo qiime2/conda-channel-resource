@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+
+import bz2
+import io
+import json
+import os
+import os.path
+import sys
+import ftplib
+from collections import defaultdict
+from pkg_resources import parse_version
+
+import conda_build.api
+
+working_dir = sys.argv[1]
+payload = json.load(sys.stdin)
+source = payload['source']
+in_dir = os.path.join(working_dir, payload['params']['channel'])
+
+with ftplib.FTP(source['host'], source['username'], source['password']) as ftp:
+    ftp.cwd(source['channel_root'])
+    with io.BytesIO() as fh:
+        # TODO: Account for other archs
+        try:
+            ftp.size('noarch/repodata.json')
+        except ftplib.error_perm:
+            remote_repodata = {'info': {}, 'packages': {}}
+            ftp.mkd('noarch')
+        else:
+            ftp.retrbinary('RETR noarch/repodata.json', fh.write)
+            remote_repodata = json.loads(fh.getvalue().decode('utf-8'))
+
+    with open(os.path.join(in_dir, 'noarch', 'repodata.json')) as fh:
+        local_repodata = json.load(fh)
+
+    versions_seen = set()
+    files_to_move = dict()
+    for filename, spec in local_repodata['packages'].items():
+        if spec['name'] != source['package']:
+            raise Exception("Wrong package name found: %r, should be %r"
+                            % (spec['name'], source['package']))
+
+        versions_seen.add(spec['version'])
+        files_to_move[filename] = spec
+
+    if len(versions_seen) != 1:
+        raise Exception("Should be only 1 version in local channel, found: %r"
+                        % versions_seen)
+
+    remote_repodata['packages'].update(files_to_move)
+
+    # serialize and zip
+    data = json.dumps(remote_repodata).encode('utf-8')
+    with io.BytesIO() as fh:
+        fh.write(data)
+        fh.seek(0)
+        ftp.storbinary('STOR noarch/repodata.json', fh)
+    with io.BytesIO() as fh:
+        fh.write(bz2.compress(data))
+        fh.seek(0)
+        ftp.storbinary('STOR noarch/repodata.json.bz2', fh)
+
+    for name, spec in files_to_move.items():
+        relpath = os.path.join(spec['subdir'], name)
+        with io.open(os.path.join(in_dir, relpath), mode='rb') as fh:
+            ftp.storbinary('STOR %s' % relpath, fh)
+
+    print(json.dumps({'version': {'version': versions_seen.pop()}}))
