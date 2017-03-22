@@ -66,4 +66,4 @@ with ftplib.FTP(source['host'], source['username'], source['password']) as ftp:
         with io.open(os.path.join(in_dir, relpath), mode='rb') as fh:
             ftp.storbinary('STOR %s' % relpath, fh)
 
-    print(json.dumps({'version': versions_seen.pop()}))
+    print(json.dumps({'version': {'version': versions_seen.pop()}}))
