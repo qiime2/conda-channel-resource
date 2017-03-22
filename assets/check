@@ -37,6 +37,7 @@ sorted_versions = sorted(versions, key=parse_version)
 if version is None:
     new_versions = [{'version': sorted_versions[-1]}]
 else:
+    version = version['version']
     try:
         i = sorted_versions.index(version)
     except IndexError:

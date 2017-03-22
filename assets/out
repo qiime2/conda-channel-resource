@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+
+import io
+import json
+import os
+import sys
+from ftplib import FTP
+from collections import defaultdict
+from pkg_resources import parse_version
+
+import conda_build.api
+
+in_dir = sys.argv[1]
+payload = json.load(sys.stdin)
+source = payload['source']
+
+with FTP(source['host'], source['username'], source['password']) as ftp:
+    ftp.cwd(source['channel_root'])
+    with io.StringIO() as fh:
+        # TODO: Account for other archs
+        ftp.retrbinary('RETR noarch/repodata.json', fh.write)
+        remote_repodata = json.loads(fh.getvalue())
+
+    local_repodata = json.load(os.path.join(in_dir, 'noarch',
+                                            'repodata.json'))
+    remote_repodata['packages'] = {**remote_repodata['packages'],
+                                   **local_repodata['packages']}
+    # serialize and zip
+
+    # iterate local_repodata
