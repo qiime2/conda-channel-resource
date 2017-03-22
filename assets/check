@@ -2,31 +2,26 @@
 
 import io
 import json
-from ftplib import FTP
-from sys import stdin
+import ftplib
+import sys
 from collections import defaultdict
 from pkg_resources import parse_version
 
-# resources:
-#   - name: foo
-#     type: conda-channel-resource
-#     source:
-#       host
-#       username
-#       password
-#       package
-#       channel_root
-
-payload = json.load(stdin)
+payload = json.load(sys.stdin)
 source = payload['source']
 version = payload.get('version')
 
-with FTP(source['host'], source['username'], source['password']) as ftp:
+with ftplib.FTP(source['host'], source['username'], source['password']) as ftp:
     ftp.cwd(source['channel_root'])
-    with io.StringIO() as fh:
+    with io.BytesIO() as fh:
         # TODO: Account for other archs
+        try:
+            ftp.size('noarch/repodata.json')
+        except ftplib.error_perm:
+            print('[]')
+            sys.exit(0)
         ftp.retrbinary('RETR noarch/repodata.json', fh.write)
-        repodata = json.loads(fh.getvalue())
+        repodata = json.loads(fh.getvalue().decode('utf-8'))
 
 pkg_versions = defaultdict(set)
 for package in repodata['packages'].values():
@@ -40,7 +35,7 @@ else:
     version = version['version']
     try:
         i = sorted_versions.index(version)
-    except IndexError:
+    except ValueError:
         new_versions = [{'version': sorted_versions[-1]}]
     else:
         new_versions = [{'version': x} for x in sorted_versions[i:]]

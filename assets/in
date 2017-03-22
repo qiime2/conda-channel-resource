@@ -18,10 +18,10 @@ version = payload['version']['version']
 
 with FTP(source['host'], source['username'], source['password']) as ftp:
     ftp.cwd(source['channel_root'])
-    with io.StringIO() as fh:
+    with io.BytesIO() as fh:
         # TODO: Account for other archs
         ftp.retrbinary('RETR noarch/repodata.json', fh.write)
-        repodata = json.loads(fh.getvalue())
+        repodata = json.loads(fh.getvalue().decode('utf-8'))
 
     relpaths = set()
     for relpath, package in repodata['packages'].items():
@@ -34,7 +34,7 @@ with FTP(source['host'], source['username'], source['password']) as ftp:
                                                            package['version']))
 
     local_index = os.path.join(dest_dir, 'noarch')
-    os.mkdirs(local_index, exist_ok=True)
+    os.makedirs(local_index, exist_ok=True)
 
     for relpath in relpaths:
         dest_path = os.path.join(dest_dir, relpath)
