@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+import io
+import json
+from ftplib import FTP
+from sys import stdin
+from collections import defaultdict
+from pkg_resources import parse_version
+
 # resources:
 #   - name: foo
 #     type: conda-channel-resource
@@ -9,14 +16,6 @@
 #       password
 #       package
 #       channel_root
-
-import json
-from ftplib import FTP
-from sys import stdin
-import io
-from collections import defaultdict
-from pkg_resources import parse_version
-
 
 payload = json.load(stdin)
 source = payload['source']
@@ -45,4 +44,5 @@ else:
     else:
         new_versions = [{'version': x} for x in sorted_versions[i:]]
 
+# Concourse is expecting to see this in stdout
 print(json.dumps(new_versions))
