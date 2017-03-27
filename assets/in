@@ -33,7 +33,8 @@ def main(source, version, params, inpath):
     conda_build.api.update_index(directories)
 
     return {'version': version,
-            'metadata': [{'name': 'files', 'value': relpaths}]}
+            'metadata': [{'name': 'file', 'value': relpath}
+                         for relpath in relpaths]}
 
 
 if __name__ == '__main__':
