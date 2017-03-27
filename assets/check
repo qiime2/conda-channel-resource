@@ -1,44 +1,29 @@
 #!/usr/bin/env python
-
-import io
-import json
-import ftplib
 import sys
-from collections import defaultdict
-from pkg_resources import parse_version
+import json
+import pkg_resources
 
-payload = json.load(sys.stdin)
-source = payload['source']
-version = payload.get('version')
+import common
 
-with ftplib.FTP(source['host'], source['username'], source['password']) as ftp:
-    ftp.cwd(source['channel_root'])
-    with io.BytesIO() as fh:
-        # TODO: Account for other archs
-        try:
-            ftp.size('noarch/repodata.json')
-        except ftplib.error_perm:
-            print('[]')
-            sys.exit(0)
-        ftp.retrbinary('RETR noarch/repodata.json', fh.write)
-        repodata = json.loads(fh.getvalue().decode('utf-8'))
 
-pkg_versions = defaultdict(set)
-for package in repodata['packages'].values():
-    pkg_versions[package['name']].add(package['version'])
+def main(source, version):
+    pkg_name = source['pkg_name']
+    pkg_version = common.from_version(version)
+    with common.connect(source) as conn:
+        data = common.ChannelData(conn=conn)
 
-versions = pkg_versions[source['package']]
-sorted_versions = sorted(versions, key=parse_version)
-if version is None:
-    new_versions = [{'version': sorted_versions[-1]}]
-else:
-    version = version['version']
-    try:
-        i = sorted_versions.index(version)
-    except ValueError:
-        new_versions = [{'version': sorted_versions[-1]}]
+    pkg_versions = data.get_versions(pkg_name)
+    sorted_versions = sorted(pkg_versions, key=pkg_resources.parse_version)
+    if pkg_version is None or pkg_version not in pkg_versions:
+        idx = -1
     else:
-        new_versions = [{'version': x} for x in sorted_versions[i:]]
+        idx = sorted_versions.index(pkg_version)
 
-# Concourse is expecting to see this in stdout
-print(json.dumps(new_versions))
+    return [common.to_version(v) for v in sorted_versions[idx:]]
+
+
+if __name__ == '__main__':
+    options = json.load(sys.stdin)
+    response = main(options['source'],
+                    options.get('version'))
+    print(json.dumps(response))
