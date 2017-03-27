@@ -84,8 +84,8 @@ class ChannelData:
                 yield filename, spec
 
     def iter_paths(self, name=None, version=None):
-        for filepath, spec in self.iter_entries(name=name, version=version):
-            yield os.path.join(spec['subdir'], filepath)
+        for filename, spec in self.iter_entries(name=name, version=version):
+            yield os.path.join(spec['subdir'], filename)
 
     def get_names(self):
         return {spec['name'] for _, spec in self.iter_entries()}
@@ -105,12 +105,13 @@ class AnacondaConnection:
     def __enter__(self):
         if self._username:
             try:
-                # Don't check, so that the username and password aren't shown
-                # in stacktrace
                 subprocess.run('anaconda login --username %r --password %r'
                                % (self._username, self._password),
-                               shell=True, stdout=subprocess.DEVNULL,
+                               shell=True, check=True,
+                               stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL)
+            # Catch exit code exception so that the username and password
+            # aren't shown in stacktrace
             except subprocess.CalledProcessError:
                 raise Exception("anaconda login failed")
         return self
