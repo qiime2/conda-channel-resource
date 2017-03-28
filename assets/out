@@ -25,8 +25,8 @@ def main(source, params, inpath):
         relpaths = conn.upload_local_data(data, pkg_name, pkg_version)
 
     return {'version': common.to_version(pkg_version),
-            'metadata': [{'name': 'file', 'value': relpath}
-                         for relpath in relpaths]}
+            'metadata': [{'name': 'file_%d' % idx, 'value': relpath}
+                         for idx, relpath in enumerate(relpaths)]}
 
 
 if __name__ == '__main__':
