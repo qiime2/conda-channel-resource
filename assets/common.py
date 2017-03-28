@@ -2,9 +2,11 @@ import os
 import io
 import bz2
 import json
+import time
 import shutil
 import ftplib
 import subprocess
+import contextlib
 import urllib.parse
 import urllib.request
 
@@ -63,7 +65,7 @@ class ChannelData:
         return self._root
 
     def add(self, filename, spec):
-        self._repodata[spec['subdir']][filename] = spec
+        self._repodata[spec['subdir']]['packages'][filename] = spec
 
     def iter_repodata_filehandles(self):
         for subdir, repodata in self._repodata.items():
@@ -137,6 +139,26 @@ class AnacondaConnection:
         return relpaths
 
 
+@contextlib.contextmanager
+def ftp_lock(ftp):
+    LOCKD = '.lock'
+    start = time.time()
+    locked = False
+    while not locked:
+        try:
+            ftp.mkd(LOCKD)
+            locked = True
+        except ftplib.error_perm:
+            # directory exists, so the resource is already locked
+            time.sleep(5)
+            if time.time() - start > 5 * 60:
+                raise Exception("Could not acquire '.lock'. Is it stale?")
+    try:
+        yield
+    finally:
+        ftp.rmd(LOCKD)
+
+
 class FTPConnection:
     def __init__(self, uri, channel, username, password):
         host = urllib.parse.urlsplit(uri).netloc
@@ -162,23 +184,25 @@ class FTPConnection:
             raise FileNotFoundError(path)
 
     def upload_local_data(self, data, name, version):
-        new_data = ChannelData(conn=self)
-        relpaths = list(data.iter_paths(name=name, version=version))
+        with ftp_lock(self._ftp):
+            new_data = ChannelData(conn=self)
+            relpaths = list(data.iter_paths(name=name, version=version))
 
-        for filename, spec in data.iter_entries(name=name, version=version):
-            new_data.add(filename, spec)
+            for filename, spec in data.iter_entries(name=name,
+                                                    version=version):
+                new_data.add(filename, spec)
 
-        for relpath in relpaths:
-            try:
-                self._ftp.mkd(os.path.dirname(relpath))
-            except ftplib.error_perm:
-                pass  # directory already exists
-            with open(os.path.join(data.root, relpath), mode='rb') as fh:
+            for relpath in relpaths:
+                try:
+                    self._ftp.mkd(os.path.dirname(relpath))
+                except ftplib.error_perm:
+                    pass  # directory already exists
+                with open(os.path.join(data.root, relpath), mode='rb') as fh:
+                    self._ftp.storbinary('STOR %s' % relpath, fh)
+
+            for relpath, fh in new_data.iter_repodata_filehandles():
                 self._ftp.storbinary('STOR %s' % relpath, fh)
-
-        for relpath, fh in new_data.iter_repodata_filehandles():
-            self._ftp.storbinary('STOR %s' % relpath, fh)
-            fh.close()
+                fh.close()
 
         return relpaths
 
