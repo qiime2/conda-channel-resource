@@ -20,8 +20,9 @@ def main(source, version, params, inpath):
             raise Exception("Couldn't find requested version (%r) of %r"
                             % (pkg_version, pkg_name))
         # noarch is a special case that tells conda that it's a "real" channel
-        directories = set('noarch')
-        os.makedirs('noarch', exist_ok=True)
+        noarch_path = os.path.join(inpath, 'noarch')
+        directories = set([noarch_path])
+        os.makedirs(noarch_path, exist_ok=True)
         for relpath in relpaths:
             dest_path = os.path.join(inpath, relpath)
             directory = os.path.dirname(dest_path)
