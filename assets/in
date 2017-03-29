@@ -19,7 +19,9 @@ def main(source, version, params, inpath):
         if not relpaths:
             raise Exception("Couldn't find requested version (%r) of %r"
                             % (pkg_version, pkg_name))
-        directories = set()
+        # noarch is a special case that tells conda that it's a "real" channel
+        directories = set('noarch')
+        os.makedirs('noarch', exist_ok=True)
         for relpath in relpaths:
             dest_path = os.path.join(inpath, relpath)
             directory = os.path.dirname(dest_path)
