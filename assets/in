@@ -35,6 +35,9 @@ def main(source, version, params, inpath):
     # be more work than letting conda do it, since it is a local filesystem.
     conda_build.api.update_index(directories)
 
+    with open(os.path.join(inpath, 'version-spec.txt'), 'w') as fh:
+        fh.write("'%s=%s'\n" % (pkg_name, pkg_version))
+
     return {'version': version,
             'metadata': [{'name': 'file_%d' % idx, 'value': relpath}
                          for idx, relpath in enumerate(relpaths)]}
