@@ -115,7 +115,7 @@ class AnacondaConnection:
             # Catch exit code exception so that the username and password
             # aren't shown in stacktrace
             except subprocess.CalledProcessError:
-                raise Exception("anaconda login failed")
+                raise Exception("anaconda login failed") from None
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
