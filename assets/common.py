@@ -163,12 +163,18 @@ class FTPConnection:
     def __init__(self, uri, channel, username, password):
         host = urllib.parse.urlsplit(uri).netloc
         if ':' in host:
-            source_address = host.split(':')
-            self._ftp = ftplib.FTP(user=username, passwd=password,
-                                   source_address=source_address)
+            host, port = host.split(':')
+            self._ftp = ftplib.FTP()
+            self._ftp.connect(host, port=int(port))
+            self._ftp.login(user=username, passwd=password)
         else:
             self._ftp = ftplib.FTP(host, username, password)
-        self._ftp.cwd(channel)
+
+        try:
+            self._ftp.cwd(channel)
+        except ftplib.error_perm:
+            self._mkpath(channel)
+            self._ftp.cwd(channel)
 
     def __enter__(self):
         self._ftp.__enter__()
@@ -176,6 +182,15 @@ class FTPConnection:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self._ftp.__exit__(exc_type, exc_value, traceback)
+
+    def _mkpath(self, path):
+        existing_path = []
+        for segment in path.split('/'):
+            existing_path.append(segment)
+            try:
+                self._ftp.mkd('/'.join(existing_path))
+            except ftplib.error_perm:
+                pass
 
     def download(self, path, filehandle):
         try:
