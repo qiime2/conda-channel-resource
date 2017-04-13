@@ -21,12 +21,16 @@ def main(source, params, inpath):
                             % (pkg_name, pkg_versions))
 
     pkg_version = pkg_versions.pop()
+    relpaths = []
     with common.connect(source) as conn:
-        relpaths = conn.upload_local_data(data, pkg_name, pkg_version)
+        remote_entries = common.ChannelData(conn=conn).iter_entries(
+            pkg_name, pkg_version)
+        if not list(remote_entries):
+            relpaths = conn.upload_local_data(data, pkg_name, pkg_version)
 
     return {'version': common.to_version(pkg_version),
-            'metadata': [{'name': 'file_%d' % idx, 'value': relpath}
-                         for idx, relpath in enumerate(relpaths)]}
+            'metadata': [{'name': 'file', 'value': relpath}
+                         for relpath in relpaths]}
 
 
 if __name__ == '__main__':
