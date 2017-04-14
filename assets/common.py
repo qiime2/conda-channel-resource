@@ -5,6 +5,7 @@ import json
 import time
 import shutil
 import ftplib
+import tempfile
 import subprocess
 import contextlib
 import urllib.parse
@@ -101,6 +102,10 @@ class AnacondaConnection:
 
     def __init__(self, channel, username, password):
         self._channel = channel
+        self._user = channel.split('/')[0]
+        self._label = 'main'
+        if 'label' in channel:
+            self._label = channel.split('/')[-1]
         self._username = username
         self._password = password
 
@@ -130,12 +135,21 @@ class AnacondaConnection:
 
     def upload_local_data(self, data, name, version):
         relpaths = list(data.iter_paths(name=name, version=version))
-        files_to_upload = [
-            os.path.join(data.root, relpath) for relpath in relpaths]
-        subprocess.run('anaconda upload --force -u %r %s'
-                       % (self._channel, ' '.join(files_to_upload)),
-                       shell=True, check=True, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+        files = ' '.join(repr(os.path.join(data.root, relpath))
+                         for relpath in relpaths)
+        with tempfile.TemporaryFile('w+') as stdout, \
+                tempfile.TemporaryFile('w+') as stderr:
+            try:
+                subprocess.run('anaconda upload -u %r -l %r %s'
+                               % (self._user, self._label, files), shell=True,
+                               check=True, stdout=stdout, stderr=stderr)
+            except Exception:
+                stdout.seek(0)
+                stderr.seek(0)
+                print(stdout.read())
+                print(stderr.read())
+                raise
+
         return relpaths
 
 
