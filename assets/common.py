@@ -240,7 +240,7 @@ def connect(source):
     source = source.copy()
     username = source.pop('user', "")
     password = source.pop('pass', "")
-    source.pop('regex')
+    source.pop('regex', None)
     try:
         source.pop('pkg_name')
         uri = source.pop('uri')
