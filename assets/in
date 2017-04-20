@@ -39,8 +39,7 @@ def main(source, version, params, inpath):
         fh.write("'%s=%s'\n" % (pkg_name, pkg_version))
 
     return {'version': version,
-            'metadata': [{'name': 'file_%d' % idx, 'value': relpath}
-                         for idx, relpath in enumerate(relpaths)]}
+            'metadata': [{'name': 'files', 'value': '\n'.join(relpaths)}]}
 
 
 if __name__ == '__main__':
