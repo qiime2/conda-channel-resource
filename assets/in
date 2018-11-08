@@ -21,20 +21,18 @@ def main(source, version, params, inpath):
                             % (pkg_version, pkg_name))
         # noarch is a special case that tells conda that it's a "real" channel
         noarch_path = os.path.join(inpath, 'noarch')
-        directories = set([noarch_path])
         os.makedirs(noarch_path, exist_ok=True)
         for relpath in relpaths:
             dest_path = os.path.join(inpath, relpath)
             directory = os.path.dirname(dest_path)
             os.makedirs(directory, exist_ok=True)
-            directories.add(directory)
             with open(dest_path, 'wb') as fh:
                 conn.download(relpath, fh)
 
     # ChannelData.iter_repodata_filehandles could be used here, but it would
     # be more work than letting conda do it, since it is a local filesystem.
     cfg = conda_build.api.Config(verbose=False)
-    conda_build.api.update_index(directories, config=cfg)
+    conda_build.api.update_index(inpath, config=cfg)
 
     with open(os.path.join(inpath, 'version-spec.txt'), 'w') as fh:
         fh.write("'%s=%s'\n" % (pkg_name, pkg_version))
