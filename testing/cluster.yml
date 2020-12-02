@@ -53,6 +53,7 @@ services:
     volumes:
       - ./web-keys:/concourse-keys
     environment:
+      - CONCOURSE_EXTERNAL_URL=http://localhost:8080
       - CONCOURSE_POSTGRES_HOST=db
       - CONCOURSE_POSTGRES_USER=dbuser1
       - CONCOURSE_POSTGRES_PASSWORD=password
@@ -69,4 +70,4 @@ services:
     volumes:
       - ./worker-keys:/concourse-keys
     environment:
-      - CONCOURSE_TSA_HOST=web
+      - CONCOURSE_TSA_HOST=web:2222
