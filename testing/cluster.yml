@@ -8,9 +8,6 @@ services:
     volumes:
       - ./testing-data:/home/ftpusers
       - ./tls:/etc/ssl/private
-    ports:
-      - "2121:21"
-      - "30000-30049:30000-30049"
     environment:
       PUBLICHOST: localhost
       FTP_USER_NAME: test1
@@ -24,9 +21,6 @@ services:
     volumes:
       - ./staging-data:/home/ftpusers
       - ./tls:/etc/ssl/private
-    ports:
-      - "2122:21"
-      - "30050-30099:30050-30099"
     environment:
       PUBLICHOST: localhost
       FTP_USER_NAME: test1
@@ -35,7 +29,6 @@ services:
 
   db:
     image: postgres:11
-    depends_on: [testing-channel-ftp, staging-channel-ftp]
     volumes:
       - ./db:/var/lib/postgresql/data
     environment:
@@ -45,8 +38,8 @@ services:
 
   web:
     image: concourse/concourse:5.5.3
-    links: [db]
-    depends_on: [db]
+    links: [db, testing-channel-ftp, staging-channel-ftp]
+    depends_on: [db, testing-channel-ftp, staging-channel-ftp]
     command: web
     ports:
       - 8080:8080

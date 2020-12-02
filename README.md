@@ -11,4 +11,7 @@ conda activate conda-channel-resource-testing
 pip install docker-compose
 cd testing
 docker-compose -f cluster.yml up --build
+fly -t main login -b -c http://localhost:8080
+fly -t main set-pipeline -p testing -c pipeline/testing.yml
+fly -t main unpause-pipeline -p testing
 ```
