@@ -12,6 +12,7 @@ CMD /run.sh \
   -P $PUBLICHOST \
   -p 30000:30099 \
   -O w3c:/var/log/pure-ftpd/transfer.log \
+  -d -d \
   --tls=1
 
 EXPOSE 21 30000-30099
