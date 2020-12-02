@@ -174,15 +174,16 @@ def ftp_lock(ftp):
 
 
 class FTPConnection:
-    def __init__(self, uri, channel, username, password):
+    def __init__(self, uri, channel, username, password, tls):
         host = urllib.parse.urlsplit(uri).netloc
+        FTPClass = ftplib.FTP_TLS if tls else ftplib.FTP
         if ':' in host:
             host, port = host.split(':')
-            self._ftp = ftplib.FTP()
+            self._ftp = FTPClass()
             self._ftp.connect(host, port=int(port))
             self._ftp.login(user=username, passwd=password)
         else:
-            self._ftp = ftplib.FTP(host, username, password)
+            self._ftp = FTPClass(host, username, password)
 
         try:
             self._ftp.cwd(channel)
@@ -254,7 +255,9 @@ def connect(source):
     if uri == AnacondaConnection.URI:
         return AnacondaConnection(channel, username, password)
     elif uri.startswith('ftp://'):
-        return FTPConnection(uri, channel, username, password)
+        return FTPConnection(uri, channel, username, password, tls=False)
+    elif uri.startswith('sftp://'):
+        return FTPConnection(uri, channel, username, password, tls=True)
     else:
         raise Exception("Unknown URI: %r" % uri)
 

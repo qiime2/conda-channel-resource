@@ -12,7 +12,7 @@ services:
       FTP_USER_NAME: test1
       FTP_USER_PASS: password
       FTP_USER_HOME: /home/ftpusers/test1
-      ADDED_FLAGS: "--tls=1"
+      ADDED_FLAGS: "--tls=0"
 
   staging-channel-ftp:
     image: stilliard/pure-ftpd:hardened
@@ -26,7 +26,7 @@ services:
       FTP_USER_NAME: test1
       FTP_USER_PASS: password
       FTP_USER_HOME: /home/ftpusers/test1
-      ADDED_FLAGS: "--tls=1"
+      ADDED_FLAGS: "--tls=2"
 
   db:
     image: postgres:11
@@ -37,15 +37,10 @@ services:
       POSTGRES_USER: dbuser1
       POSTGRES_PASSWORD: password
 
-  registry:
-    image: registry:2
-    ports:
-      - 5000:5000
-
   web:
     image: concourse/concourse:5.5.3
-    links: [registry, db, testing-channel-ftp, staging-channel-ftp]
-    depends_on: [registry, db, testing-channel-ftp, staging-channel-ftp]
+    links: [db, testing-channel-ftp, staging-channel-ftp]
+    depends_on: [db, testing-channel-ftp, staging-channel-ftp]
     command: web
     ports:
       - 8080:8080
