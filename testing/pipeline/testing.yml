@@ -15,7 +15,7 @@ resources:
     check_every: 1m
     source:
       pkg_name: q2-no-op
-      channel: test1
+      channel: builds/20WX.YZ
       uri: ftp://testing-channel-ftp
       user: test1
       pass: password
@@ -25,7 +25,7 @@ resources:
     check_every: 1m
     source:
       pkg_name: q2-no-op
-      channel: test1
+      channel: builds/20WX.YZ
       uri: ftp://staging-channel-ftp
       user: test1
       pass: password
@@ -34,4 +34,5 @@ resource_types:
   - name: conda-channel
     type: docker-image
     source:
+      # TODO: set this to the local registry
       repository: quay.io/qiime2/conda-channel-resource

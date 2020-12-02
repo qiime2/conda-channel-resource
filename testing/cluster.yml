@@ -2,30 +2,31 @@ version: '3'
 
 services:
   testing-channel-ftp:
-    build: .
-    image: testing-channel-ftp:latest
+    image: stilliard/pure-ftpd:hardened
     privileged: true
     volumes:
       - ./testing-data:/home/ftpusers
       - ./tls:/etc/ssl/private
     environment:
-      PUBLICHOST: localhost
+      PUBLICHOST: testing-channel-ftp
       FTP_USER_NAME: test1
       FTP_USER_PASS: password
       FTP_USER_HOME: /home/ftpusers/test1
+      ADDED_FLAGS: "--tls=1"
 
   staging-channel-ftp:
-    build: .
+    image: stilliard/pure-ftpd:hardened
     image: staging-channel-ftp:latest
     privileged: true
     volumes:
       - ./staging-data:/home/ftpusers
       - ./tls:/etc/ssl/private
     environment:
-      PUBLICHOST: localhost
+      PUBLICHOST: staging-channel-ftp
       FTP_USER_NAME: test1
       FTP_USER_PASS: password
       FTP_USER_HOME: /home/ftpusers/test1
+      ADDED_FLAGS: "--tls=1"
 
   db:
     image: postgres:11
@@ -36,10 +37,15 @@ services:
       POSTGRES_USER: dbuser1
       POSTGRES_PASSWORD: password
 
+  registry:
+    image: registry:2
+    ports:
+      - 5000:5000
+
   web:
     image: concourse/concourse:5.5.3
-    links: [db, testing-channel-ftp, staging-channel-ftp]
-    depends_on: [db, testing-channel-ftp, staging-channel-ftp]
+    links: [registry, db, testing-channel-ftp, staging-channel-ftp]
+    depends_on: [registry, db, testing-channel-ftp, staging-channel-ftp]
     command: web
     ports:
       - 8080:8080
@@ -64,3 +70,10 @@ services:
       - ./worker-keys:/concourse-keys
     environment:
       - CONCOURSE_TSA_HOST=web:2222
+
+  debug:
+    command: bash -c "python -m http.server 8001"
+    image: python
+    links: [testing-channel-ftp, staging-channel-ftp]
+    ports:
+      - 8001:8001
