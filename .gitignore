@@ -144,4 +144,5 @@ testing/test-data/
 testing/staging-data/
 testing/tls/
 testing/db/
-testing/keys/
+testing/web-keys/
+testing/worker-keys/

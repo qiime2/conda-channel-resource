@@ -50,12 +50,8 @@ services:
     command: web
     ports:
       - 8080:8080
-      - 2222:2222
-      - 7777:7777
-      - 7788:7788
-      - 7799:7799
     volumes:
-      - ./keys:/concourse-keys
+      - ./web-keys:/concourse-keys
     environment:
       - CONCOURSE_POSTGRES_HOST=db
       - CONCOURSE_POSTGRES_USER=dbuser1
@@ -68,6 +64,9 @@ services:
     image: concourse/concourse:5.5.3
     privileged: true
     command: worker
+    links: [web]
     depends_on: [web]
     volumes:
-      - ./keys:/concourse-keys
+      - ./worker-keys:/concourse-keys
+    environment:
+      - CONCOURSE_TSA_HOST=web
