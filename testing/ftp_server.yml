@@ -5,8 +5,7 @@ services:
     image: testing-channel-ftp:latest
     privileged: true
     volumes:
-      - ./data:/home/ftpusers
-      - ./tls:/etc/ssl/private
+      - ./testing-data:/home/ftpusers
     ports:
       - "2121:21"
       - "30000-30049:30000-30049"
@@ -21,7 +20,7 @@ services:
     image: staging-channel-ftp:latest
     privileged: true
     volumes:
-      - ./data:/home/ftpusers
+      - ./staging-data:/home/ftpusers
       - ./tls:/etc/ssl/private
     ports:
       - "2122:21"
