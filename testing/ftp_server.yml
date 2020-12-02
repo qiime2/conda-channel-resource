@@ -1,0 +1,69 @@
+version: '3'
+services:
+  testing-channel-ftp:
+    build: .
+    image: testing-channel-ftp:latest
+    privileged: true
+    volumes:
+      - ./data:/home/ftpusers
+      - ./tls:/etc/ssl/private
+    ports:
+      - "2121:21"
+      - "30000-30049:30000-30049"
+    environment:
+      PUBLICHOST: localhost
+      FTP_USER_NAME: test1
+      FTP_USER_PASS: password
+      FTP_USER_HOME: /home/ftpusers/test1
+
+  staging-channel-ftp:
+    build: .
+    image: staging-channel-ftp:latest
+    privileged: true
+    volumes:
+      - ./data:/home/ftpusers
+      - ./tls:/etc/ssl/private
+    ports:
+      - "2122:21"
+      - "30050-30099:30050-30099"
+    environment:
+      PUBLICHOST: localhost
+      FTP_USER_NAME: test1
+      FTP_USER_PASS: password
+      FTP_USER_HOME: /home/ftpusers/test1
+
+  db:
+    image: postgres:11
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: testing_db
+      POSTGRES_USER: dbuser1
+      POSTGRES_PASSWORD: password
+
+  web:
+    image: concourse/concourse:5.5.3
+    links: [db]
+    depends_on: [db]
+    command: web
+    ports:
+      - 8080:8080
+      - 2222:2222
+      - 7777:7777
+      - 7788:7788
+      - 7799:7799
+    volumes:
+      - ./keys:/concourse-keys
+    environment:
+      - CONCOURSE_POSTGRES_HOST=db
+      - CONCOURSE_POSTGRES_USER=dbuser1
+      - CONCOURSE_POSTGRES_PASSWORD=password
+      - CONCOURSE_POSTGRES_DATABASE=testing_db
+      - CONCOURSE_ADD_LOCAL_USER=concourse:password
+
+worker_a:
+  image: concourse/concourse:5.5.3
+  privileged: true
+  command: worker
+  volumes:
+    - ./keys:/concourse-keys
