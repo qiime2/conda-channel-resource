@@ -61,9 +61,9 @@ services:
       - CONCOURSE_POSTGRES_DATABASE=testing_db
       - CONCOURSE_ADD_LOCAL_USER=concourse:password
 
-worker_a:
-  image: concourse/concourse:5.5.3
-  privileged: true
-  command: worker
-  volumes:
-    - ./keys:/concourse-keys
+  worker_a:
+    image: concourse/concourse:5.5.3
+    privileged: true
+    command: worker
+    volumes:
+      - ./keys:/concourse-keys
