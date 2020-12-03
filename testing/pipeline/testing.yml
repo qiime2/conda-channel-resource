@@ -26,7 +26,7 @@ resources:
     source:
       pkg_name: q2-no-op
       channel: builds/20WX.YZ
-      uri: sftp://staging-channel-ftp
+      uri: ftps://staging-channel-ftp
       user: test1
       pass: password
 

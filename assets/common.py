@@ -256,7 +256,7 @@ def connect(source):
         return AnacondaConnection(channel, username, password)
     elif uri.startswith('ftp://'):
         return FTPConnection(uri, channel, username, password, tls=False)
-    elif uri.startswith('sftp://'):
+    elif uri.startswith('ftps://'):
         return FTPConnection(uri, channel, username, password, tls=True)
     else:
         raise Exception("Unknown URI: %r" % uri)

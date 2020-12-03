@@ -14,4 +14,7 @@ docker-compose -f cluster.yml up --build
 fly -t main login -b -c http://localhost:8080
 fly -t main set-pipeline -p testing -c pipeline/testing.yml
 fly -t main unpause-pipeline -p testing
+# resources
+fly -t main check-resource -r testing/q2-no-op-test-channel
+fly -t main check-resource -r testing/q2-no-op-staging-channel
 ```

@@ -1,5 +1,8 @@
 - update common.py to make sure that the `conda index`
   results actually get uploaded to the FTP
+  - instead: add heartbeat job to Library to auto-index every X minutes
+
+
 - test "moving" the staging channel and see what happens to
   existing versions
 - clean up quay.io/qiime2/conda-channel-resource-devel when done
