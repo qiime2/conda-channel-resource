@@ -98,7 +98,8 @@ class ChannelData:
 
 
 class AnacondaConnection:
-    URI = 'https://conda.anaconda.org'
+    ANACONDA_CLOUD_URI = 'https://conda.anaconda.org'
+    QIIME2_STAGING_URI = 'https://packages.qiime2.org/qiime2/staging'
 
     def __init__(self, channel, username, password):
         self._channel = channel
@@ -253,7 +254,10 @@ def connect(source):
         raise Exception("Unknown source keys: %r" % set(source))
 
     channel = str(channel)
-    if uri == AnacondaConnection.URI:
+    if uri == AnacondaConnection.ANACONDA_CLOUD_URI:
+        return AnacondaConnection(channel, username, password)
+    elif uri == AnacondaConnection.QIIME2_STAGING_URI:
+        channel = '%s/%s' % (AnacondaConnection.QIIME2_STAGING_URI, channel)
         return AnacondaConnection(channel, username, password)
     elif uri.startswith('ftp://'):
         return FTPConnection(uri, channel, username, password, tls=False)
