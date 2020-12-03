@@ -1,4 +1,0 @@
-+ test "moving" the staging channel and see what happens to existing versions
-- add heartbeat job to Library to auto-index every X minutes
-- clean up quay.io/qiime2/conda-channel-resource-devel when done
-- update busywork config
