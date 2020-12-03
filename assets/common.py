@@ -175,7 +175,6 @@ def ftp_lock(ftp):
 
 class FTPConnection:
     def __init__(self, uri, channel, username, password, tls):
-        channel = str(channel)
         host = urllib.parse.urlsplit(uri).netloc
         FTPClass = ftplib.FTP_TLS if tls else ftplib.FTP
         if ':' in host:
@@ -253,6 +252,7 @@ def connect(source):
     if source:
         raise Exception("Unknown source keys: %r" % set(source))
 
+    channel = str(channel)
     if uri == AnacondaConnection.URI:
         return AnacondaConnection(channel, username, password)
     elif uri.startswith('ftp://'):
