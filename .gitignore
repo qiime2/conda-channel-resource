@@ -139,3 +139,10 @@ Session.vim
 tags
 
 # End of https://www.gitignore.io/api/macos,vim,python
+
+testing/testing-data/
+testing/staging-data/
+testing/tls/
+testing/db/
+testing/web-keys/
+testing/worker-keys/

@@ -1,0 +1,74 @@
+version: '3'
+
+services:
+  testing-channel-ftp:
+    image: stilliard/pure-ftpd:hardened
+    privileged: true
+    volumes:
+      - ./testing-data:/home/ftpusers
+      - ./tls:/etc/ssl/private
+    environment:
+      PUBLICHOST: testing-channel-ftp
+      FTP_USER_NAME: test1
+      FTP_USER_PASS: password
+      FTP_USER_HOME: /home/ftpusers/test1
+      ADDED_FLAGS: "--tls=0"
+
+  staging-channel-ftp:
+    image: stilliard/pure-ftpd:hardened
+    image: staging-channel-ftp:latest
+    privileged: true
+    volumes:
+      - ./staging-data:/home/ftpusers
+      - ./tls:/etc/ssl/private
+    environment:
+      PUBLICHOST: staging-channel-ftp
+      FTP_USER_NAME: test1
+      FTP_USER_PASS: password
+      FTP_USER_HOME: /home/ftpusers/test1
+      ADDED_FLAGS: "--tls=2"
+
+  db:
+    image: postgres:11
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: testing_db
+      POSTGRES_USER: dbuser1
+      POSTGRES_PASSWORD: password
+
+  web:
+    image: concourse/concourse:5.5.3
+    links: [db, testing-channel-ftp, staging-channel-ftp]
+    depends_on: [db, testing-channel-ftp, staging-channel-ftp]
+    command: web
+    ports:
+      - 8080:8080
+    volumes:
+      - ./web-keys:/concourse-keys
+    environment:
+      - CONCOURSE_EXTERNAL_URL=http://localhost:8080
+      - CONCOURSE_POSTGRES_HOST=db
+      - CONCOURSE_POSTGRES_USER=dbuser1
+      - CONCOURSE_POSTGRES_PASSWORD=password
+      - CONCOURSE_POSTGRES_DATABASE=testing_db
+      - CONCOURSE_ADD_LOCAL_USER=concourse:password
+      - CONCOURSE_MAIN_TEAM_LOCAL_USER=concourse
+
+  worker_a:
+    image: concourse/concourse:5.5.3
+    privileged: true
+    command: worker
+    links: [web]
+    depends_on: [web]
+    volumes:
+      - ./worker-keys:/concourse-keys
+    environment:
+      - CONCOURSE_TSA_HOST=web:2222
+
+  debug:
+    command: bash -c "python -m http.server 8001"
+    image: python
+    links: [testing-channel-ftp, staging-channel-ftp]
+    ports:
+      - 8001:8001
