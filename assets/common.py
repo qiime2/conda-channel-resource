@@ -133,6 +133,7 @@ class AnacondaConnection:
 
     def download(self, path, filehandle):
         url = os.path.join(self.URI, self._channel, path)
+        print(url, file=sys.stderr)
         req = urllib.request.Request(url, headers={'User-Agent': 'q2d2/2.0'})
         fh = urllib.request.urlopen(req)
         shutil.copyfileobj(fh, filehandle)
