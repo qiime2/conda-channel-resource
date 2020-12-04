@@ -57,7 +57,7 @@ class ChannelData:
                     with open(os.path.join(self._root, repodata_path),
                               mode='r') as fh:
                         self._repodata[subdir] = json.load(fh)
-            except FileNotFoundError
+            except FileNotFoundError:
                 self._repodata[subdir] = {'info': {}, 'packages': {}}
             except urllib.error.HTTPError as e:
                 if e.code == 404:
