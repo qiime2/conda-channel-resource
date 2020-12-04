@@ -4,6 +4,7 @@ import bz2
 import json
 import time
 import shutil
+import sys
 import ftplib
 import tempfile
 import subprocess
@@ -132,6 +133,7 @@ class AnacondaConnection:
 
     def download(self, path, filehandle):
         url = os.path.join(self.URI, self._channel, path)
+        print(url, file=sys.stderr)
         fh = urllib.request.urlopen(url)
         shutil.copyfileobj(fh, filehandle)
 
