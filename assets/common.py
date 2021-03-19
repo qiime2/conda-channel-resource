@@ -113,7 +113,7 @@ class ChannelData:
 
 class AnacondaConnection:
     ANACONDA_CLOUD_URI = 'https://conda.anaconda.org'
-    QIIME2_STAGING_URI = 'https://packages.qiime2.org/qiime2/staging'
+    QIIME2_URI = 'https://packages.qiime2.org/qiime2'
 
     def __init__(self, uri, channel, username, password):
         self.URI = uri
@@ -273,7 +273,7 @@ def connect(source):
     channel = str(channel)
     if uri == AnacondaConnection.ANACONDA_CLOUD_URI:
         return AnacondaConnection(uri, channel, username, password)
-    elif uri == AnacondaConnection.QIIME2_STAGING_URI:
+    elif uri == AnacondaConnection.QIIME2_URI:
         return AnacondaConnection(uri, channel, username, password)
     elif uri.startswith('ftp://'):
         return FTPConnection(uri, channel, username, password, tls=False)
