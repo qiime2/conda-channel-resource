@@ -17,6 +17,7 @@ import ftplib
 import tempfile
 import subprocess
 import contextlib
+import collections
 import urllib.parse
 import urllib.request
 
@@ -107,8 +108,12 @@ class ChannelData:
     def get_names(self):
         return {spec['name'] for _, spec in self.iter_entries()}
 
-    def get_versions(self, name):
-        return {spec['version'] for _, spec in self.iter_entries(name=name)}
+    def get_versions(self, name, matched):
+        matched = set(matched)
+        pkgs = collections.defaultdict(set)
+        for _, spec in self.iter_entries(name=name):
+            pkgs[spec['version']].add(spec['subdir'])
+        return {v for v, b in pkgs.items() if b >= matched}
 
 
 class AnacondaConnection:
@@ -140,9 +145,10 @@ class AnacondaConnection:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        subprocess.run('anaconda logout',
-                       shell=True, check=True, stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+        if self._username:
+            subprocess.run('anaconda logout',
+                           shell=True, check=True, stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
 
     def download(self, path, filehandle):
         url = os.path.join(self.URI, self._channel, path)

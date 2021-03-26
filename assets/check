@@ -9,12 +9,13 @@ import common
 
 def main(source, version):
     pkg_name = source['pkg_name']
+    matched = source.pop('matched', set())
     pkg_version = common.from_version(version)
     regex = source.get('regex')
     with common.connect(source) as conn:
         data = common.ChannelData(conn=conn)
 
-    pkg_versions = data.get_versions(pkg_name)
+    pkg_versions = data.get_versions(pkg_name, matched)
     sorted_versions = sorted(pkg_versions, key=pkg_resources.parse_version)
     if regex is not None:
         regex = re.compile(regex)
