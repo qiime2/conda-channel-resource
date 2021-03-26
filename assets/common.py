@@ -115,14 +115,14 @@ class ChannelData:
             pkgs[spec['version']].add(spec['subdir'])
         return {v for v, b in pkgs.items() if b >= matched}
 
-    def get_unmatched_versions(self, name):
+    def get_all_versions(self, name):
         return {spec['version'] for _, spec in self.iter_entries(name=name)}
 
     def get_versions(self, name, matched):
         if matched:
             return self.get_matched_versions(name, matched)
         else:
-            return self.get_unmatched_versions(name)
+            return self.get_all_versions(name)
 
 
 class AnacondaConnection:
