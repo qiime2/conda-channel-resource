@@ -11,6 +11,7 @@ import common
 
 def main(source, version, params, inpath):
     pkg_name = source['pkg_name']
+    matched = source.pop('matched', set())
     pkg_version = common.from_version(version)
 
     with common.connect(source) as conn:
