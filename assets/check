@@ -9,7 +9,7 @@ import common
 
 def main(source, version):
     pkg_name = source['pkg_name']
-    matched = source.pop('matched', False)
+    matched = source.pop('matched', set())
     pkg_version = common.from_version(version)
     regex = source.get('regex')
     with common.connect(source) as conn:
