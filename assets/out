@@ -10,9 +10,10 @@ import common
 
 def main(source, params, inpath):
     pkg_name = source['pkg_name']
+    matched = source.pop('matched', False)
     data = common.ChannelData(path=os.path.join(inpath, params['from']))
 
-    pkg_versions = data.get_versions(pkg_name)
+    pkg_versions = data.get_versions(pkg_name, matched)
     if len(pkg_versions) != 1:
         if not pkg_versions:
             raise Exception('No packages found with name: %r' % pkg_name)
