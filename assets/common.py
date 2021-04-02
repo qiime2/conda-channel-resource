@@ -12,7 +12,6 @@ import bz2
 import json
 import time
 import shutil
-import sys
 import ftplib
 import tempfile
 import subprocess
@@ -152,10 +151,9 @@ class AnacondaConnection:
 
     def download(self, path, filehandle):
         url = os.path.join(self.URI, self._channel, path)
-        print(url, file=sys.stderr)
         req = urllib.request.Request(url, headers={'User-Agent': 'q2d2/2.0'})
-        fh = urllib.request.urlopen(req)
-        shutil.copyfileobj(fh, filehandle)
+        with urllib.request.urlopen(req) as resp:
+            shutil.copyfileobj(resp, filehandle)
 
     def upload_local_data(self, data, name, version):
         relpaths = list(data.iter_paths(name=name, version=version))
